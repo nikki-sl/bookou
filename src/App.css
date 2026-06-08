@@ -1,0 +1,116 @@
+.appContainer {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  background-color: #FFFFFF;
+  min-height:100vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+}
+
+.content {
+  padding: 40px 100px;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1A202C;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.subtitle {
+  color: #718096;
+  font-size: 16px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+.sectionWrapper {
+  width: 100%;
+  margin-bottom: 32px;
+}
+
+.dividerTitle {
+  width: 100%;
+  text-align: left;
+  font-size: 20px;
+  color: #2D3748;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 8px;
+  margin-bottom: 24px;
+  font-weight: 600;
+}
+
+.sectionTitle {
+  text-align: left;
+  font-size: 18px;
+  font-weight: 600;
+  color: #2D3748;
+  margin-bottom: 16px;
+}
+
+.carouselHorizontal {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  width: 100%;
+  padding-bottom: 12px;
+}
+
+.carouselHorizontal::-webkit-scrollbar {
+  height: 5px;
+}
+
+.carouselHorizontal::-webkit-scrollbar-thumb {
+  background-color: #E2E8F0;
+  border-radius: 4px;
+}
+
+.buttonContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  align-items: center;
+  margin-top: 24px;
+}
+
+.btnPrimary, .btnSecondary {
+  width: 100%;
+  max-width: 340px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 30px;
+  box-sizing: border-box;
+}
+
+.btnPrimary {
+  background-color: #E06237;
+  color: white;
+  border: none;
+  padding: 14px;
+}
+
+.btnSecondary {
+  background-color: transparent;
+  color: #E06237;
+  border: 2px solid #E06237;
+  padding: 12px;
+}
+
+@media (max-width: 600px) {
+  .content {
+    padding: 24px 16px;
+  }
+  .title {
+    font-size: 22px;
+  }
+}

@@ -1,0 +1,38 @@
+.header {
+  background-color: #1C162E;
+  color: white;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  height: 65px;
+  width: 100%;
+}
+
+.backButton {
+  position: absolute;
+  left: 24px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.logo {
+  color: #F2A952;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+}
+
+@media (max-width: 600px) {
+  .header {
+    height: 60px;
+  }
+  .logo {
+    font-size: 22px;
+  }
+}

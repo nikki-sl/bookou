@@ -1,0 +1,39 @@
+.cardContainer {
+  flex: 0 0 110px; /* Tamanho ligeiramente menor, igual ao seu protótipo */
+  width: 110px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.cardContainer:hover {
+  transform: scale(1.05);
+}
+
+.imagemCircular {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%; 
+  background-color: #E2E8F0;
+  background-size: cover;
+  background-position: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+.nomeEscritor {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2D3748;
+  text-align: center;
+  width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.imagemCircular.selecionado {
+  border: 4px solid #E06237;
+}
