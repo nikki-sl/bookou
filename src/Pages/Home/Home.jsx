@@ -11,12 +11,15 @@ import CardLivro from "../../components/CardLivro/CardLivro";
 export default function Home({ aoNavegar }) {
   const [livros, setLivros] = useState([]);
   const [livrosLendo, setLivrosLendo] = useState([]); 
+  const [livrosQueroLer, setLivrosQueroLer] = useState([]); 
+  const [livrosLidos, setLivrosLidos] = useState([]); 
   const [pesquisa, setPesquisa] = useState("");
-  const [menuAberto, setMenuAberto] = useState(false); // Estado para controlar o menu
+  const [menuAberto, setMenuAberto] = useState(false);
 
   useEffect(() => {
     const buscarDados = async () => {
       try {
+        // Busca todos os livros cadastrados na plataforma
         const queryLivros = await getDocs(collection(db, "Livro"));
         const listaLivros = queryLivros.docs.map((doc) => ({
           id: doc.id,
@@ -24,11 +27,14 @@ export default function Home({ aoNavegar }) {
         }));
         setLivros(listaLivros);
 
+        // Busca as interações da biblioteca do usuário
         const queryBiblioteca = await getDocs(collection(db, "MinhaBiblioteca"));
         const listaBiblioteca = queryBiblioteca.docs.map((doc) => doc.data());
         
-        const apenasLendo = listaBiblioteca.filter(item => item.status === "Lendo");
-        setLivrosLendo(apenasLendo);
+        // Filtra pelos status corretos para alimentar os novos painéis
+        setLivrosLendo(listaBiblioteca.filter(item => (item.status || "").toLowerCase() === "lendo"));
+        setLivrosQueroLer(listaBiblioteca.filter(item => (item.status || "").toLowerCase() === "quero-ler"));
+        setLivrosLidos(listaBiblioteca.filter(item => (item.status || "").toLowerCase() === "lido"));
 
       } catch (error) {
         console.error("Erro ao buscar dados do Firebase:", error);
@@ -42,7 +48,6 @@ export default function Home({ aoNavegar }) {
     (livro.titulo || "").toLowerCase().includes(pesquisa.toLowerCase())
   );
 
-  // Fecha o menu se clicar fora dele (comportamento de UX)
   const alternarMenu = (e) => {
     e.stopPropagation();
     setMenuAberto(!menuAberto);
@@ -55,7 +60,7 @@ export default function Home({ aoNavegar }) {
       <main className="homeContent">
         {/* HERO */}
         <section className="heroSection">
-          {/* BOTÃO DE TRÊS PONTINHOS */}
+          {/* BOTÃO DE TRÊS PONTINHOS COMPORTADO E ESTILIZADO */}
           <div className="menuOpcoesContext">
             <button className="btnTresPontinhos" onClick={alternarMenu}>
               &#8942;
@@ -77,20 +82,21 @@ export default function Home({ aoNavegar }) {
             <p>Descubra novos livros, acompanhe sua jornada literária e encontre histórias que combinam com você.</p>
           </div>
 
+          {/* NOVOS CARDS FOCADOS NO PROGRESSO DO USUÁRIO */}
           <div className="heroStats">
-            <div className="statCard">
-              <span>{livros.length}</span>
-              <p>Livros</p>
-            </div>
-
             <div className="statCard">
               <span>{livrosLendo.length}</span>
               <p>Lendo</p>
             </div>
 
             <div className="statCard">
-              <span>0</span>
-              <p>Destaques</p>
+              <span>{livrosQueroLer.length}</span>
+              <p>Quero Ler</p>
+            </div>
+
+            <div className="statCard">
+              <span>{livrosLidos.length}</span>
+              <p>Lidos</p>
             </div>
           </div>
         </section>
