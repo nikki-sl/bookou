@@ -1,0 +1,144 @@
+.authContainer {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f7fafc;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  font-family: sans-serif;
+  box-sizing: border-box;
+}
+
+.authCard {
+  background: #FFFFFF;
+  padding: 40px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+  position: relative;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.authVoltar {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  font-size: 14px;
+  color: #718096;
+  cursor: pointer;
+}
+
+.authTitulo {
+  font-size: 26px;
+  font-weight: 700;
+  color: #1a202c;
+  margin-top: 15px;
+  margin-bottom: 8px;
+}
+
+.authSubtitulo {
+  font-size: 14px;
+  color: #718096;
+  margin-bottom: 28px;
+}
+
+.authForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  gap: 6px;
+}
+
+.inputGroup label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.inputGroup input {
+  padding: 12px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+
+.inputGroup input:focus {
+  border-color: #e06237;
+}
+
+.btnAuth {
+  background-color: #e06237;
+  color: white;
+  border: none;
+  padding: 14px;
+  width: 100%;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 30px;
+  margin-top: 8px;
+}
+
+.authDivisor {
+  text-align: center;
+  margin: 22px 0;
+  position: relative;
+}
+
+.authDivisor::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e2e8f0;
+  z-index: 1;
+}
+
+.authDivisor span {
+  background: #FFFFFF;
+  padding: 0 10px;
+  font-size: 13px;
+  color: #a0aec0;
+  position: relative;
+  z-index: 2;
+}
+
+.btnGoogle {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 30px;
+  font-weight: 600;
+  color: #4a5568;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+}
+
+.authAlternativa {
+  margin-top: 24px;
+  font-size: 14px;
+  color: #4a5568;
+}
+
+.authAlternativa span {
+  color: #e06237;
+  font-weight: 600;
+  cursor: pointer;
+}

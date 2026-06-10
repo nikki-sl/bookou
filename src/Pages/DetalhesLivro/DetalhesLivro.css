@@ -1,0 +1,198 @@
+.detalhesContainer {
+  width: 100%;
+  min-height: 100vh;
+  background-color: #f7fafc;
+  display: flex;
+  flex-direction: column;
+  font-family: sans-serif;
+}
+
+.detalhesContent {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+.livroHeaderPrincipal {
+  display: flex;
+  gap: 40px;
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.capaLivroGrande {
+  width: 200px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.livroInfosAgrupadas {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+}
+
+.livroTituloInfo {
+  font-size: 32px;
+  color: #1a202c;
+  margin: 0 0 10px 0;
+}
+
+.livroAutorInfo {
+  font-size: 16px;
+  color: #718096;
+  margin-bottom: 14px;
+}
+
+.livroAutorInfo span {
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.livroTagGenero {
+  background-color: #edf2f7;
+  color: #4a5568;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  align-self: flex-start;
+  margin-bottom: 24px;
+}
+
+.statusOpcoesContainer h3 {
+  font-size: 16px;
+  color: #2d3748;
+  margin-bottom: 12px;
+}
+
+.botoesStatusGrid {
+  display: flex;
+  gap: 12px;
+}
+
+.btnStatus {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  background: white;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #4a5568;
+  transition: all 0.2s;
+}
+
+.btnStatus:hover {
+  background: #f7fafc;
+}
+
+/* Cores dos Status Ativos */
+.ativoLendo {
+  background-color: #ebf8ff !important;
+  color: #2b6cb0 !important;
+  border-color: #63b3ed !important;
+}
+
+.ativoLido {
+  background-color: #f0fff4 !important;
+  color: #2f855a !important;
+  border-color: #68d391 !important;
+}
+
+.ativoAbandonei {
+  background-color: #fff5f5 !important;
+  color: #c53030 !important;
+  border-color: #feb2b2 !important;
+}
+
+/* Seção de feedbacks */
+.secaoFeedbackUsuario {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  margin-top: 24px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+}
+
+.secaoFeedbackUsuario h3 {
+  margin-top: 0;
+  color: #1a202c;
+}
+
+.estrelasContainer {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.estrelaClick {
+  font-size: 32px;
+  color: #cbd5e0;
+  cursor: pointer;
+  transition: color 0.1s;
+}
+
+.estrelaClick:hover, .estrelaCheia {
+  color: #ffb800;
+}
+
+.campoTextoFeedback {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.campoTextoFeedback label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.campoTextoFeedback textarea {
+  width: 100%;
+  height: 120px;
+  padding: 14px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.campoTextoFeedback textarea:focus {
+  border-color: #e06237;
+}
+
+.btnSalvarFeedback {
+  align-self: flex-end;
+  background-color: #e06237;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-weight: bold;
+  border-radius: 30px;
+  cursor: pointer;
+}
+
+@media (max-width: 650px) {
+  .livroHeaderPrincipal {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .livroTagGenero {
+    align-self: center;
+  }
+  .botoesStatusGrid {
+    flex-direction: column;
+  }
+}

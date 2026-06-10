@@ -188,4 +188,16 @@
   .atalhoBiblioteca button {
     width: 100%;
   }
+.resultadoPesquisaGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  padding-top: 10px;
+}
+
+.semResultados {
+  color: #718096;
+  font-size: 16px;
+  font-style: italic;
+}
 }

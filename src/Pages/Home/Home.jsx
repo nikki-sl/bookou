@@ -10,59 +10,50 @@ import CardLivro from "../../components/CardLivro/CardLivro";
 
 export default function Home({ aoNavegar }) {
   const [livros, setLivros] = useState([]);
+  const [livrosLendo, setLivrosLendo] = useState([]); 
   const [pesquisa, setPesquisa] = useState("");
-  const [carregando, setCarregando] = useState(true);
 
   useEffect(() => {
-    const buscarLivros = async () => {
+    const buscarDados = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "Livro"));
-
-        const lista = querySnapshot.docs.map((doc) => ({
+        // 1. Busca todos os livros do catálogo
+        const queryLivros = await getDocs(collection(db, "Livro"));
+        const listaLivros = queryLivros.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+        setLivros(listaLivros);
 
-        setLivros(lista);
+        // 2. Busca os livros salvos na biblioteca do usuário
+        const queryBiblioteca = await getDocs(collection(db, "MinhaBiblioteca"));
+        const listaBiblioteca = queryBiblioteca.docs.map((doc) => doc.data());
+        
+        // Filtra para pegar apenas os que possuem status "Lendo"
+        const apenasLendo = listaBiblioteca.filter(item => item.status === "Lendo");
+        setLivrosLendo(apenasLendo);
+
       } catch (error) {
-        console.error("Erro ao buscar livros:", error);
-      } finally {
-        setCarregando(false);
+        console.error("Erro ao buscar dados do Firebase:", error);
       }
     };
 
-    buscarLivros();
+    buscarDados();
   }, []);
 
   const livrosFiltrados = livros.filter((livro) =>
-    (livro.titulo || "")
-      .toLowerCase()
-      .includes(pesquisa.toLowerCase())
+    (livro.titulo || "").toLowerCase().includes(pesquisa.toLowerCase())
   );
-
-  if (carregando) {
-    return (
-      <div className="loading">
-        <h2>📚 Carregando sua próxima leitura...</h2>
-      </div>
-    );
-  }
 
   return (
     <div className="homeContainer">
       <Header onBack={() => aoNavegar("/")} />
 
       <main className="homeContent">
-
         {/* HERO */}
         <section className="heroSection">
           <div className="heroText">
             <h1>Bem-vindo ao Bookou 📚</h1>
-
-            <p>
-              Descubra novos livros, acompanhe sua jornada literária
-              e encontre histórias que combinam com você.
-            </p>
+            <p>Descubra novos livros, acompanhe sua jornada literária e encontre histórias que combinam com você.</p>
           </div>
 
           <div className="heroStats">
@@ -72,121 +63,95 @@ export default function Home({ aoNavegar }) {
             </div>
 
             <div className="statCard">
-              <span>{Math.min(livros.length, 3)}</span>
+              <span>{livrosLendo.length}</span>
               <p>Lendo</p>
             </div>
 
             <div className="statCard">
-              <span>⭐</span>
+              <span>0</span>
               <p>Destaques</p>
             </div>
           </div>
         </section>
 
         {/* PESQUISA */}
-        <SearchBar
-          value={pesquisa}
-          onChange={setPesquisa}
-        />
+        <SearchBar value={pesquisa} onChange={setPesquisa} />
 
-        {/* BIBLIOTECA */}
-        <div
-          className="atalhoBiblioteca"
-          onClick={() => aoNavegar("/biblioteca")}
-        >
-          <div>
-            <h3>Minha Biblioteca</h3>
+        {/* MODO DE BUSCA ATIVA */}
+        {pesquisa.trim() !== "" ? (
+          <section className="homeSection">
+            <div className="sectionHeader">
+              <h2>Resultados da Pesquisa ({livrosFiltrados.length})</h2>
+            </div>
+            <div className="resultadoPesquisaGrid">
+              {livrosFiltrados.length > 0 ? (
+                livrosFiltrados.map((livro) => (
+                  <div key={livro.id} onClick={() => aoNavegar("/livro", livro.id)} style={{ cursor: "pointer" }}>
+                    <CardLivro imagem={livro.foto_capa} titulo={livro.titulo} />
+                  </div>
+                ))
+              ) : (
+                <p className="semResultados">Nenhum livro corresponde à sua busca.</p>
+              )}
+            </div>
+          </section>
+        ) : (
+          <>
+            {/* BIBLIOTECA */}
+            <div className="atalhoBiblioteca" onClick={() => aoNavegar("/biblioteca")}>
+              <div>
+                <h3>Minha Biblioteca</h3>
+                <p>Veja seus livros salvos, acompanhe seu progresso e organize suas leituras.</p>
+              </div>
+              <button>Ver Biblioteca</button>
+            </div>
 
-            <p>
-              Veja seus livros salvos, acompanhe seu progresso e
-              organize suas leituras.
-            </p>
-          </div>
-
-          <button>Ver Biblioteca</button>
-        </div>
-
-        {/* CONTINUE LENDO */}
-        <section className="homeSection">
-          <div className="sectionHeader">
-            <h2>Continue Lendo</h2>
-            <span>📖</span>
-          </div>
-
-          <div className="carouselHome">
-            {livros.slice(0, 5).map((livro) => (
-              <CardLivro
-                key={livro.id}
-                imagem={livro.foto_capa}
-                titulo={livro.titulo}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* SUGESTÕES */}
-        <section className="homeSection">
-          <div className="sectionHeader">
-            <h2>Sugestões para Você</h2>
-            <span>✨</span>
-          </div>
-
-          <div className="carouselHome">
-            {livrosFiltrados.length > 0 ? (
-              livrosFiltrados.map((livro) => (
-                <CardLivro
-                  key={livro.id}
-                  imagem={livro.foto_capa}
-                  titulo={livro.titulo}
-                />
-              ))
+            {/* SEÇÃO DINÂMICA: SE ESTIVER LENDO, MOSTRA O PROGRESSO. SE NÃO, MOSTRA AS NOVIDADES DO APP */}
+            {livrosLendo.length > 0 ? (
+              <section className="homeSection">
+                <div className="sectionHeader">
+                  <h2>Continue Lendo</h2>
+                  <span>📖</span>
+                </div>
+                <div className="carouselHome">
+                  {livrosLendo.map((livro) => (
+                    <div key={livro.livroId} onClick={() => aoNavegar("/livro", livro.livroId)} style={{ cursor: "pointer" }}>
+                      <CardLivro imagem={livro.foto_capa} titulo={livro.titulo} />
+                    </div>
+                  ))}
+                </div>
+              </section>
             ) : (
-              <p className="semResultados">
-                Nenhum livro encontrado.
-              </p>
+              <section className="homeSection">
+                <div className="sectionHeader">
+                  <h2>Populares no Bookou</h2>
+                </div>
+                <div className="carouselHome">
+                  {/* Pega os últimos 5 livros adicionados invertendo a lista */}
+                  {[...livros].reverse().slice(0, 5).map((livro) => (
+                    <div key={livro.id} onClick={() => aoNavegar("/livro", livro.id)} style={{ cursor: "pointer" }}>
+                      <CardLivro imagem={livro.foto_capa} titulo={livro.titulo} />
+                    </div>
+                  ))}
+                </div>
+              </section>
             )}
-          </div>
-        </section>
 
-        {/* POPULARES */}
-        <section className="homeSection">
-          <div className="sectionHeader">
-            <h2>Mais Populares</h2>
-            <span>🔥</span>
-          </div>
-
-          <div className="carouselHome">
-            {[...livros]
-              .reverse()
-              .slice(0, 8)
-              .map((livro) => (
-                <CardLivro
-                  key={livro.id}
-                  imagem={livro.foto_capa}
-                  titulo={livro.titulo}
-                />
-              ))}
-          </div>
-        </section>
-
-        {/* TODOS OS LIVROS */}
-        <section className="homeSection">
-          <div className="sectionHeader">
-            <h2>Explore o Catálogo</h2>
-            <span>📚</span>
-          </div>
-
-          <div className="carouselHome">
-            {livros.map((livro) => (
-              <CardLivro
-                key={livro.id}
-                imagem={livro.foto_capa}
-                titulo={livro.titulo}
-              />
-            ))}
-          </div>
-        </section>
-
+            {/* SUGESTÕES */}
+            <section className="homeSection">
+              <div className="sectionHeader">
+                <h2>Sugestões para Você</h2>
+              </div>
+              <div className="carouselHome">
+                {livros.map((livro) => (
+                  <div key={livro.id} onClick={() => aoNavegar("/livro", livro.id)} style={{ cursor: "pointer" }}>
+                    <CardLivro imagem={livro.foto_capa} titulo={livro.titulo} />
+                  </div>
+                ))}
+              </div>
+            </section>
+          </>
+        )}
       </main>
     </div>
   );
