@@ -12,6 +12,7 @@ import Preferencias from "./Pages/Preferencias/Preferencias";
 import Home from "./Pages/Home/Home";
 import MinhaBiblioteca from "./Pages/MinhaBiblioteca/MinhaBiblioteca";
 import DetalhesLivro from "./Pages/DetalhesLivro/DetalhesLivro";
+import MeuPerfil from "./Pages/MeuPerfil/MeuPerfil"; // <-- Nova importação da tela de perfil
 
 export default function App() {
   const [livros, setLivros] = useState([]);
@@ -109,6 +110,8 @@ export default function App() {
       return <MinhaBiblioteca aoNavegar={navegarPara} />;
     case "/livro":
       return <DetalhesLivro idLivro={idLivroAtivo} aoNavegar={navegarPara} />;
+    case "/perfil": // <-- Nova rota configurada para ler a tela de perfil
+      return <MeuPerfil aoNavegar={navegarPara} />;
     default:
       return <Entrada aoNavegar={navegarPara} />;
   }

@@ -12,11 +12,11 @@ export default function Home({ aoNavegar }) {
   const [livros, setLivros] = useState([]);
   const [livrosLendo, setLivrosLendo] = useState([]); 
   const [pesquisa, setPesquisa] = useState("");
+  const [menuAberto, setMenuAberto] = useState(false); // Estado para controlar o menu
 
   useEffect(() => {
     const buscarDados = async () => {
       try {
-        // 1. Busca todos os livros do catálogo
         const queryLivros = await getDocs(collection(db, "Livro"));
         const listaLivros = queryLivros.docs.map((doc) => ({
           id: doc.id,
@@ -24,11 +24,9 @@ export default function Home({ aoNavegar }) {
         }));
         setLivros(listaLivros);
 
-        // 2. Busca os livros salvos na biblioteca do usuário
         const queryBiblioteca = await getDocs(collection(db, "MinhaBiblioteca"));
         const listaBiblioteca = queryBiblioteca.docs.map((doc) => doc.data());
         
-        // Filtra para pegar apenas os que possuem status "Lendo"
         const apenasLendo = listaBiblioteca.filter(item => item.status === "Lendo");
         setLivrosLendo(apenasLendo);
 
@@ -44,13 +42,36 @@ export default function Home({ aoNavegar }) {
     (livro.titulo || "").toLowerCase().includes(pesquisa.toLowerCase())
   );
 
+  // Fecha o menu se clicar fora dele (comportamento de UX)
+  const alternarMenu = (e) => {
+    e.stopPropagation();
+    setMenuAberto(!menuAberto);
+  };
+
   return (
-    <div className="homeContainer">
+    <div className="homeContainer" onClick={() => setMenuAberto(false)}>
       <Header onBack={() => aoNavegar("/")} />
 
       <main className="homeContent">
         {/* HERO */}
         <section className="heroSection">
+          {/* BOTÃO DE TRÊS PONTINHOS */}
+          <div className="menuOpcoesContext">
+            <button className="btnTresPontinhos" onClick={alternarMenu}>
+              &#8942;
+            </button>
+            
+            {menuAberto && (
+              <div className="dropdownMenu">
+                <button onClick={() => aoNavegar("/perfil")}>👤 Meu Perfil</button>
+                <button onClick={() => aoNavegar("/biblioteca")}>📚 Minha Biblioteca</button>
+                <button onClick={() => aoNavegar("/preferencias")}>⚙️ Preferências</button>
+                <div className="divisorMenu"></div>
+                <button className="btnSairDropdown" onClick={() => aoNavegar("/")}>Sair</button>
+              </div>
+            )}
+          </div>
+
           <div className="heroText">
             <h1>Bem-vindo ao Bookou 📚</h1>
             <p>Descubra novos livros, acompanhe sua jornada literária e encontre histórias que combinam com você.</p>
@@ -106,7 +127,7 @@ export default function Home({ aoNavegar }) {
               <button>Ver Biblioteca</button>
             </div>
 
-            {/* SEÇÃO DINÂMICA: SE ESTIVER LENDO, MOSTRA O PROGRESSO. SE NÃO, MOSTRA AS NOVIDADES DO APP */}
+            {/* SEÇÃO DINÂMICA */}
             {livrosLendo.length > 0 ? (
               <section className="homeSection">
                 <div className="sectionHeader">
@@ -127,7 +148,6 @@ export default function Home({ aoNavegar }) {
                   <h2>Populares no Bookou</h2>
                 </div>
                 <div className="carouselHome">
-                  {/* Pega os últimos 5 livros adicionados invertendo a lista */}
                   {[...livros].reverse().slice(0, 5).map((livro) => (
                     <div key={livro.id} onClick={() => aoNavegar("/livro", livro.id)} style={{ cursor: "pointer" }}>
                       <CardLivro imagem={livro.foto_capa} titulo={livro.titulo} />

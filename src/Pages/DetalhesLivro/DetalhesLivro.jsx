@@ -2,13 +2,13 @@ import React, { useState, useEffect } from "react";
 import "./DetalhesLivro.css";
 
 import { db } from "../../firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore"; // <-- Importamos deleteDoc
 import Header from "../../components/Header/Header";
 
 export default function DetalhesLivro({ idLivro, aoNavegar }) {
   const [livro, setLivro] = useState(null);
   const [carregando, setCarregando] = useState(true);
-  const [status, setStatus] = useState(""); // Lendo, Lido, Abandonei
+  const [status, setStatus] = useState(""); // lendo, lido, abandonou, quero-ler
   const [feedback, setFeedback] = useState("");
   const [nota, setNota] = useState(0);
 
@@ -20,7 +20,6 @@ export default function DetalhesLivro({ idLivro, aoNavegar }) {
 
     const buscarDetalhes = async () => {
       try {
-        // Carrega infos fixas do livro
         const livroRef = doc(db, "Livro", idLivro);
         const livroSnap = await getDoc(livroRef);
 
@@ -28,7 +27,6 @@ export default function DetalhesLivro({ idLivro, aoNavegar }) {
           setLivro(livroSnap.data());
         }
 
-        // Tenta carregar se o usuário já tinha salvo algum feedback/status antes
         const bibliotecaRef = doc(db, "MinhaBiblioteca", idLivro);
         const bibliotecaSnap = await getDoc(bibliotecaRef);
 
@@ -67,6 +65,28 @@ export default function DetalhesLivro({ idLivro, aoNavegar }) {
     }
   };
 
+  // 🔥 Nova função que gerencia o clique no botão (Salvar vs Desmarcar)
+  const alternarStatus = async (statusClicado) => {
+    const docRef = doc(db, "MinhaBiblioteca", idLivro);
+
+    if (status === statusClicado) {
+      // Se clicou no botão que JÁ ESTAVA ativo -> Desmarca e deleta do banco
+      try {
+        await deleteDoc(docRef);
+        setStatus("");
+        setFeedback("");
+        setNota(0);
+        alert("Livro removido da sua biblioteca!");
+      } catch (error) {
+        console.error("Erro ao remover da biblioteca:", error);
+      }
+    } else {
+      // Se clicou em um status novo -> Salva e atualiza o estado
+      setStatus(statusClicado);
+      salvarDadosLeitura(statusClicado, nota);
+    }
+  };
+
   if (carregando) {
     return <div className="loading"><h2>Carregando informações do livro...</h2></div>;
   }
@@ -91,23 +111,31 @@ export default function DetalhesLivro({ idLivro, aoNavegar }) {
             <div className="statusOpcoesContainer">
               <h3>Status da sua leitura:</h3>
               <div className="botoesStatusGrid">
+                {/* Note que mudamos de onClick={() => setStatus...} para onClick={() => alternarStatus...} */}
+                {/* Também adicionei a opção de 'Quero Ler' para bater com a Biblioteca! */}
                 <button 
-                  className={`btnStatus ${status === "Lendo" ? "ativoLendo" : ""}`}
-                  onClick={() => { setStatus("Lendo"); salvarDadosLeitura("Lendo"); }}
+                  className={`btnStatus ${status === "quero-ler" ? "ativoQueroLer" : ""}`}
+                  onClick={() => alternarStatus("quero-ler")}
                 >
-                  📖 Lendo
+                  Quero Ler
                 </button>
                 <button 
-                  className={`btnStatus ${status === "Lido" ? "ativoLido" : ""}`}
-                  onClick={() => { setStatus("Lido"); salvarDadosLeitura("Lido"); }}
+                  className={`btnStatus ${status === "lendo" ? "ativoLendo" : ""}`}
+                  onClick={() => alternarStatus("lendo")}
                 >
-                  ✅ Lido
+                  Lendo
                 </button>
                 <button 
-                  className={`btnStatus ${status === "Abandonei" ? "ativoAbandonei" : ""}`}
-                  onClick={() => { setStatus("Abandonei"); salvarDadosLeitura("Abandonei"); }}
+                  className={`btnStatus ${status === "lido" ? "ativoLido" : ""}`}
+                  onClick={() => alternarStatus("lido")}
                 >
-                  ❌ Abandonei
+                  Lido
+                </button>
+                <button 
+                  className={`btnStatus ${status === "abandonou" ? "ativoAbandonei" : ""}`}
+                  onClick={() => alternarStatus("abandonou")}
+                >
+                  Abandonei
                 </button>
               </div>
             </div>

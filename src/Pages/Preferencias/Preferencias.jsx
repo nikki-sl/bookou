@@ -66,7 +66,7 @@ export default function Preferencias({ aoNavegar, livros, generos, escritores })
     <div className="appContainer">
       <Header onBack={() => aoNavegar("/home")} />
       <main className="content">
-        <h2 className="title">Vamos começar definindo suas preferências.</h2>
+        <h2 className="title">Vamos definir suas preferências.</h2>
         <p className="subtitle">Escolha pelo menos 5 opções entre Livros, Gêneros, Autores...</p>
         <SearchBar value={pesquisa} onChange={setPesquisa} />
         

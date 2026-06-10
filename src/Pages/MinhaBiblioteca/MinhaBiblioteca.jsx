@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from "react";
 import "./MinhaBiblioteca.css";
-import { db } from "../../firebase"; // Ajuste o caminho dependendo de onde salvar
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../../firebase"; 
+// 🔥 Adicionadas as funções deleteDoc e doc para conseguirmos apagar os itens
+import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import Header from "../../components/Header/Header";
 import CardLivro from "../../components/CardLivro/CardLivro";
 
-export default function MinhaBiblioteca() {
+export default function MinhaBiblioteca({ aoNavegar }) {
   const [meusLivros, setMeusLivros] = useState([]);
   const [carregando, setCarregando] = useState(true);
-  const [abaAtiva, setAbaAtiva] = useState("todos"); // Filtros: todos, lendo, lidos
+  const [abaAtiva, setAbaAtiva] = useState("todos"); // Filtros: todos, lendo, quero-ler, abandonou, lido
 
   useEffect(() => {
     const buscarBiblioteca = async () => {
       try {
-        // 1. Busca os livros que estão salvos na biblioteca do usuário
-        // Nota: Se vocês tiverem autenticação, aqui usaria o ID do usuário logado.
-        const bibliotecaRef = collection(db, "Biblioteca");
+        const bibliotecaRef = collection(db, "MinhaBiblioteca");
         const querySnapshot = await getDocs(bibliotecaRef);
         
         const itensBiblioteca = querySnapshot.docs.map(doc => ({
@@ -23,7 +22,6 @@ export default function MinhaBiblioteca() {
           ...doc.data()
         }));
 
-        // 2. Busca todos os livros cadastrados para cruzar os dados (pegar capa, título, etc.)
         const livrosRef = collection(db, "Livro");
         const livrosSnapshot = await getDocs(livrosRef);
         const listaTodosLivros = livrosSnapshot.docs.map(doc => ({
@@ -31,14 +29,13 @@ export default function MinhaBiblioteca() {
           ...doc.data()
         }));
 
-        // 3. Junta as informações: Cruza o ID do livro salvo na biblioteca com os detalhes dele
         const livrosDetalhados = itensBiblioteca.map(item => {
           const dadosDoLivro = listaTodosLivros.find(l => l.id === item.livroId);
           return {
             ...item,
-            ...dadosDoLivro // Junta foto_capa, titulo, etc.
+            ...dadosDoLivro 
           };
-        }).filter(l => l.titulo); // Garante que só exibe se o livro existir no banco
+        }).filter(l => l.titulo);
 
         setMeusLivros(livrosDetalhados);
       } catch (error) {
@@ -51,14 +48,34 @@ export default function MinhaBiblioteca() {
     buscarBiblioteca();
   }, []);
 
-  const lidarComVoltar = () => {
-    window.location.href = "/home"; // Volta para a home
+  // 🔥 Função que zera a biblioteca
+  const zerarBiblioteca = async () => {
+    const confirmar = window.confirm(
+      "Atenção: Tem certeza que deseja apagar TODOS os livros da sua biblioteca? Esta ação não pode ser desfeita!"
+    );
+    
+    if (!confirmar) return;
+
+    try {
+      const querySnapshot = await getDocs(collection(db, "MinhaBiblioteca"));
+      const promessasDeDelecao = querySnapshot.docs.map((documento) =>
+        deleteDoc(doc(db, "MinhaBiblioteca", documento.id))
+      );
+      
+      await Promise.all(promessasDeDelecao);
+      
+      alert("Biblioteca zerada com sucesso!");
+      window.location.reload(); // Recarrega a página para sumir com os livros na hora
+    } catch (error) {
+      console.error("Erro ao zerar biblioteca:", error);
+      alert("Erro ao tentar limpar a biblioteca.");
+    }
   };
 
-  // Filtra os livros de acordo com a aba selecionada (Lendo, Lido, Quero Ler)
   const livrosFiltrados = meusLivros.filter(livro => {
     if (abaAtiva === "todos") return true;
-    return livro.status === abaAtiva; 
+    const statusLivro = (livro.status || "").toLowerCase();
+    return statusLivro === abaAtiva; 
   });
 
   if (carregando) {
@@ -71,11 +88,18 @@ export default function MinhaBiblioteca() {
 
   return (
     <div className="bibliotecaContainer">
-      <Header onBack={lidarComVoltar} />
+      <Header onBack={() => aoNavegar("/home")} />
       
       <main className="content">
         <h2 className="title">Minha Biblioteca</h2>
         <p className="subtitle">Gerencie suas leituras e acompanhe seu progresso.</p>
+
+        {/* 🔥 Botão condicional: Só aparece se a pessoa tiver livros salvos */}
+        {meusLivros.length > 0 && (
+          <button className="btnZerarBiblioteca" onClick={zerarBiblioteca}>
+          Zerar Biblioteca
+          </button>
+        )}
 
         {/* Abas de Navegação interna da biblioteca */}
         <div className="abasContainer">
@@ -83,7 +107,7 @@ export default function MinhaBiblioteca() {
             className={`abaBotao ${abaAtiva === "todos" ? "ativa" : ""}`} 
             onClick={() => setAbaAtiva("todos")}
           >
-            Todos
+            Todos ({meusLivros.length})
           </button>
           <button 
             className={`abaBotao ${abaAtiva === "lendo" ? "ativa" : ""}`} 
@@ -98,6 +122,12 @@ export default function MinhaBiblioteca() {
             Quero Ler
           </button>
           <button 
+            className={`abaBotao ${abaAtiva === "abandonou" ? "ativa" : ""}`} 
+            onClick={() => setAbaAtiva("abandonou")}
+          >
+            Abandonei
+          </button>
+          <button 
             className={`abaBotao ${abaAtiva === "lido" ? "ativa" : ""}`} 
             onClick={() => setAbaAtiva("lido")}
           >
@@ -110,15 +140,24 @@ export default function MinhaBiblioteca() {
           {livrosFiltrados.length > 0 ? (
             livrosFiltrados.map((livro) => (
               <div key={livro.id} className="livroItem">
-                <CardLivro 
-                  imagem={livro.foto_capa} 
-                  titulo={livro.titulo} 
-                  selecionado={false}
-                  onSelect={() => {}} // Aqui depois você pode colocar para abrir detalhes do livro
-                />
-                {/* Tag discreta mostrando o status do livro */}
-                <span className={`statusTag ${livro.status}`}>
-                  {livro.status === "lendo" ? "📖 Lendo" : livro.status === "lido" ? "✅ Lido" : "📌 Quero ler"}
+                <div 
+                  onClick={() => aoNavegar("/livro", livro.livroId)} 
+                  style={{ cursor: "pointer" }}
+                >
+                  <CardLivro 
+                    imagem={livro.foto_capa} 
+                    titulo={livro.titulo} 
+                    selecionado={false}
+                    onSelect={() => {}}
+                  />
+                </div>
+                
+                {/* Tag dinâmica mostrando o status do livro */}
+                <span className={`statusTag ${(livro.status || "").toLowerCase()}`}>
+                  {(livro.status || "").toLowerCase() === "lendo" && "Lendo"}
+                  {(livro.status || "").toLowerCase() === "quero-ler" && "Quero ler"}
+                  {(livro.status || "").toLowerCase() === "abandonou" && "Abandonei"}
+                  {(livro.status || "").toLowerCase() === "lido" && "Lido"}
                 </span>
               </div>
             ))

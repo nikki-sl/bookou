@@ -24,8 +24,31 @@
 .subtitle {
   text-align: center;
   color: #718096;
-  margin-bottom: 30px;
+  margin-bottom: 20px; /* Reduzi um pouco a margem para caber o botão */
 }
+
+/* 🔥 ESTILO NOVO: O botão de zerar biblioteca */
+.btnZerarBiblioteca {
+  background-color: #FFF5F5;
+  border: 1px dashed #e53e3e;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-weight: bold;
+  color: #c53030;
+  cursor: pointer;
+  transition: 0.2s ease;
+  font-size: 14px;
+  margin: 0 auto 30px auto; /* Centraliza e dá espaço para as abas embaixo */
+  display: block; 
+  width: fit-content;
+}
+
+.btnZerarBiblioteca:hover {
+  background-color: #FED7D7;
+  border-style: solid;
+  transform: translateY(-1px);
+}
+/* 🔥 Fim do estilo novo */
 
 .abasContainer {
   display: flex;
@@ -43,10 +66,12 @@
   cursor: pointer;
   font-weight: 600;
   transition: 0.2s;
+  color: #4A5568;
 }
 
 .abaBotao:hover {
   border-color: #E06237;
+  color: #E06237;
 }
 
 .abaBotao.ativa {
@@ -65,19 +90,41 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  background: #FAFAFA;
+  padding: 16px;
+  border-radius: 12px;
+  transition: 0.2s;
+}
+
+.livroItem:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .statusTag {
-  margin-top: 10px;
-  padding: 6px 12px;
+  margin-top: 12px;
+  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+  text-align: center;
 }
 
+/* Cores das Tags baseadas no status */
 .statusTag.lendo {
   background-color: #EBF8FF;
   color: #2B6CB0;
+}
+
+.statusTag.quero-ler {
+  background-color: #FEFCBF;
+  color: #B7791F;
+}
+
+.statusTag.abandonou {
+  background-color: #FFF5F5;
+  color: #C53030;
 }
 
 .statusTag.lido {
@@ -85,16 +132,12 @@
   color: #2F855A;
 }
 
-.statusTag.quero-ler {
-  background-color: #FFF5F5;
-  color: #C53030;
-}
-
 .semResultados {
   text-align: center;
   color: #718096;
-  padding: 40px 0;
+  padding: 60px 0;
   grid-column: 1 / -1;
+  font-weight: 500;
 }
 
 .loadingContainer {
@@ -102,13 +145,16 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: #FFFFFF;
 }
 
 .loadingContainer h2 {
-  color: #718096;
-  font-size: 18px;
+  color: #E06237;
+  font-size: 20px;
+  font-family: sans-serif;
 }
 
+/* Responsividade para Celulares */
 @media (max-width: 768px) {
   .content {
     padding: 24px 16px;
@@ -124,7 +170,7 @@
   }
 
   .abaBotao {
-    font-size: 14px;
+    font-size: 13px;
     padding: 8px 14px;
   }
 }
