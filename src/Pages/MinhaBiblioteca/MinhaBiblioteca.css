@@ -24,31 +24,101 @@
 .subtitle {
   text-align: center;
   color: #718096;
-  margin-bottom: 20px; /* Reduzi um pouco a margem para caber o botão */
+  margin-bottom: 30px;
 }
 
-/* 🔥 ESTILO NOVO: O botão de zerar biblioteca */
-.btnZerarBiblioteca {
-  background-color: #FFF5F5;
-  border: 1px dashed #e53e3e;
-  padding: 10px 18px;
-  border-radius: 20px;
-  font-weight: bold;
-  color: #c53030;
-  cursor: pointer;
-  transition: 0.2s ease;
+.pesquisaBancoContainer {
+  position: relative;
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto 40px auto;
+}
+
+.inputPesquisaBanco {
+  width: 100%;
+  padding: 12px 18px;
+  border: 1px solid #E2E8F0;
+  border-radius: 25px;
   font-size: 14px;
-  margin: 0 auto 30px auto; /* Centraliza e dá espaço para as abas embaixo */
-  display: block; 
-  width: fit-content;
+  outline: none;
+  box-sizing: border-box;
+  transition: 0.2s;
 }
 
-.btnZerarBiblioteca:hover {
-  background-color: #FED7D7;
-  border-style: solid;
-  transform: translateY(-1px);
+.inputPesquisaBanco:focus {
+  border-color: #E06237;
+  box-shadow: 0 0 0 3px rgba(224, 98, 55, 0.1);
 }
-/* 🔥 Fim do estilo novo */
+
+.dropdownResultados {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  margin-top: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.itemResultadoPesquisa {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: 0.2s;
+  border-bottom: 1px solid #F7FAFC;
+}
+
+.itemResultadoPesquisa:last-child {
+  border-bottom: none;
+}
+
+.itemResultadoPesquisa:hover {
+  background-color: #F7FAFC;
+}
+
+.miniCapaPesquisa {
+  width: 35px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.tituloResultado {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2D3748;
+  margin: 0;
+}
+
+.autorResultado {
+  font-size: 12px;
+  color: #718096;
+  margin: 2px 0 0 0;
+}
+
+.btnZerarBibliotecaDiscreto {
+  background: none;
+  border: none;
+  color: #A0AEC0;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+  margin: 50px auto 0 auto;
+  display: block;
+  width: fit-content;
+  transition: color 0.2s;
+}
+
+.btnZerarBibliotecaDiscreto:hover {
+  color: #E53E3E;
+}
 
 .abasContainer {
   display: flex;
@@ -111,7 +181,6 @@
   text-align: center;
 }
 
-/* Cores das Tags baseadas no status */
 .statusTag.lendo {
   background-color: #EBF8FF;
   color: #2B6CB0;
@@ -154,7 +223,6 @@
   font-family: sans-serif;
 }
 
-/* Responsividade para Celulares */
 @media (max-width: 768px) {
   .content {
     padding: 24px 16px;

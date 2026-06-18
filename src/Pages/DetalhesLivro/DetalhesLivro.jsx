@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "./DetalhesLivro.css";
-
-import { db } from "../../firebase";
-import { doc, getDoc, setDoc, deleteDoc } from "firebase/firestore"; // <-- Importamos deleteDoc
 import Header from "../../components/Header/Header";
+import { obterDadosDoLivro } from "../../services/livrosService";
+import { obterStatusUsuarioLivro, atualizarDadosLeitura, removerLivroDaBiblioteca } from "../../services/bibliotecaService";
 
 export default function DetalhesLivro({ idLivro, aoNavegar }) {
   const [livro, setLivro] = useState(null);
   const [carregando, setCarregando] = useState(true);
-  const [status, setStatus] = useState(""); // lendo, lido, abandonou, quero-ler
+  const [status, setStatus] = useState("");
   const [feedback, setFeedback] = useState("");
   const [nota, setNota] = useState(0);
 
@@ -18,24 +17,15 @@ export default function DetalhesLivro({ idLivro, aoNavegar }) {
       return;
     }
 
-    const buscarDetalhes = async () => {
+    const carregarInformacoes = async () => {
       try {
-        const livroRef = doc(db, "Livro", idLivro);
-        const livroSnap = await getDoc(livroRef);
+        const dadosLivro = await obterDadosDoLivro(idLivro);
+        setLivro(dadosLivro);
 
-        if (livroSnap.exists()) {
-          setLivro(livroSnap.data());
-        }
-
-        const bibliotecaRef = doc(db, "MinhaBiblioteca", idLivro);
-        const bibliotecaSnap = await getDoc(bibliotecaRef);
-
-        if (bibliotecaSnap.exists()) {
-          const dadosUsuario = bibliotecaSnap.data();
-          setStatus(dadosUsuario.status || "");
-          setFeedback(dadosUsuario.feedback || "");
-          setNota(dadosUsuario.nota || 0);
-        }
+        const dadosUsuario = await obterStatusUsuarioLivro(idLivro);
+        setStatus(dadosUsuario.status);
+        setFeedback(dadosUsuario.feedback);
+        setNota(dadosUsuario.nota);
       } catch (error) {
         console.error("Erro ao carregar detalhes do livro:", error);
       } finally {
@@ -43,36 +33,28 @@ export default function DetalhesLivro({ idLivro, aoNavegar }) {
       }
     };
 
-    buscarDetalhes();
-  }, [idLivro]);
+    carregarInformacoes();
+  }, [idLivro, aoNavegar]);
 
-  const salvarDadosLeitura = async (novoStatus = status, novaNota = nota) => {
+  const salvarDadosLeituraAtualizada = async (novoStatus = status, novaNota = nota) => {
     try {
-      const docRef = doc(db, "MinhaBiblioteca", idLivro);
-      await setDoc(docRef, {
-        livroId: idLivro,
+      await atualizarDadosLeitura(idLivro, {
         titulo: livro.titulo,
         foto_capa: livro.foto_capa,
         status: novoStatus,
         nota: novaNota,
-        feedback: feedback,
-        dataAtualizacao: new Date()
-      }, { merge: true });
-      
-      alert("Sua biblioteca foi atualizada com sucesso! 🎉");
+        feedback: feedback
+      });
+      // O salvamento acontece silenciosamente aqui
     } catch (error) {
       console.error("Erro ao salvar dados na biblioteca:", error);
     }
   };
 
-  // 🔥 Nova função que gerencia o clique no botão (Salvar vs Desmarcar)
   const alternarStatus = async (statusClicado) => {
-    const docRef = doc(db, "MinhaBiblioteca", idLivro);
-
     if (status === statusClicado) {
-      // Se clicou no botão que JÁ ESTAVA ativo -> Desmarca e deleta do banco
       try {
-        await deleteDoc(docRef);
+        await removerLivroDaBiblioteca(idLivro);
         setStatus("");
         setFeedback("");
         setNota(0);
@@ -81,9 +63,8 @@ export default function DetalhesLivro({ idLivro, aoNavegar }) {
         console.error("Erro ao remover da biblioteca:", error);
       }
     } else {
-      // Se clicou em um status novo -> Salva e atualiza o estado
       setStatus(statusClicado);
-      salvarDadosLeitura(statusClicado, nota);
+      salvarDadosLeituraAtualizada(statusClicado, nota);
     }
   };
 
@@ -111,8 +92,6 @@ export default function DetalhesLivro({ idLivro, aoNavegar }) {
             <div className="statusOpcoesContainer">
               <h3>Status da sua leitura:</h3>
               <div className="botoesStatusGrid">
-                {/* Note que mudamos de onClick={() => setStatus...} para onClick={() => alternarStatus...} */}
-                {/* Também adicionei a opção de 'Quero Ler' para bater com a Biblioteca! */}
                 <button 
                   className={`btnStatus ${status === "quero-ler" ? "ativoQueroLer" : ""}`}
                   onClick={() => alternarStatus("quero-ler")}
@@ -149,7 +128,7 @@ export default function DetalhesLivro({ idLivro, aoNavegar }) {
               <span 
                 key={estrela} 
                 className={`estrelaClick ${estrela <= nota ? "estrelaCheia" : ""}`}
-                onClick={() => { setNota(estrela); salvarDadosLeitura(status, estrela); }}
+                onClick={() => { setNota(estrela); salvarDadosLeituraAtualizada(status, estrela); }}
               >
                 ★
               </span>
@@ -163,7 +142,7 @@ export default function DetalhesLivro({ idLivro, aoNavegar }) {
               onChange={(e) => setFeedback(e.target.value)} 
               placeholder="Escreva aqui suas impressões, citações favoritas ou críticas..."
             />
-            <button className="btnSalvarFeedback" onClick={() => salvarDadosLeitura()}>
+            <button className="btnSalvarFeedback" onClick={() => salvarDadosLeituraAtualizada()}>
               Salvar Feedback
             </button>
           </div>

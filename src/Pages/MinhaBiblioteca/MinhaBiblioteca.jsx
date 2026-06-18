@@ -1,74 +1,70 @@
 import React, { useState, useEffect } from "react";
 import "./MinhaBiblioteca.css";
-import { db } from "../../firebase"; 
-// 🔥 Adicionadas as funções deleteDoc e doc para conseguirmos apagar os itens
-import { collection, getDocs, deleteDoc, doc } from "firebase/firestore";
 import Header from "../../components/Header/Header";
 import CardLivro from "../../components/CardLivro/CardLivro";
+import { obterBibliotecaDetalhada, limparTodaBiblioteca } from "../../services/bibliotecaService";
+import { obterTodosLivrosSistema } from "../../services/livrosService";
 
 export default function MinhaBiblioteca({ aoNavegar }) {
   const [meusLivros, setMeusLivros] = useState([]);
+  const [todosLivrosSistema, setTodosLivrosSistema] = useState([]);
   const [carregando, setCarregando] = useState(true);
-  const [abaAtiva, setAbaAtiva] = useState("todos"); // Filtros: todos, lendo, quero-ler, abandonou, lido
+  const [abaAtiva, setAbaAtiva] = useState("todos");
+  
+  const [termoPesquisa, setTermoPesquisa] = useState("");
+  const [resultadosPesquisa, setResultadosPesquisa] = useState([]);
+
+  // Novos estados para controlar o visual dos alertas
+  const [modalZerarAberto, setModalZerarAberto] = useState(false);
+  const [mensagemSucesso, setMensagemSucesso] = useState("");
 
   useEffect(() => {
-    const buscarBiblioteca = async () => {
+    const carregarDados = async () => {
       try {
-        const bibliotecaRef = collection(db, "MinhaBiblioteca");
-        const querySnapshot = await getDocs(bibliotecaRef);
-        
-        const itensBiblioteca = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
+        const livrosBiblioteca = await obterBibliotecaDetalhada();
+        setMeusLivros(livrosBiblioteca);
 
-        const livrosRef = collection(db, "Livro");
-        const livrosSnapshot = await getDocs(livrosRef);
-        const listaTodosLivros = livrosSnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-
-        const livrosDetalhados = itensBiblioteca.map(item => {
-          const dadosDoLivro = listaTodosLivros.find(l => l.id === item.livroId);
-          return {
-            ...item,
-            ...dadosDoLivro 
-          };
-        }).filter(l => l.titulo);
-
-        setMeusLivros(livrosDetalhados);
+        const livrosSistema = await obterTodosLivrosSistema();
+        setTodosLivrosSistema(livrosSistema);
       } catch (error) {
-        console.error("Erro ao buscar dados da biblioteca:", error);
+        console.error("Erro ao carregar dados da biblioteca:", error);
       } finally {
         setCarregando(false);
       }
     };
 
-    buscarBiblioteca();
+    carregarDados();
   }, []);
 
-  // 🔥 Função que zera a biblioteca
-  const zerarBiblioteca = async () => {
-    const confirmar = window.confirm(
-      "Atenção: Tem certeza que deseja apagar TODOS os livros da sua biblioteca? Esta ação não pode ser desfeita!"
-    );
-    
-    if (!confirmar) return;
+  useEffect(() => {
+    if (termoPesquisa.trim() === "") {
+      setResultadosPesquisa([]);
+      return;
+    }
 
+    const filtrados = todosLivrosSistema.filter(livro => 
+      livro.titulo?.toLowerCase().includes(termoPesquisa.toLowerCase()) ||
+      livro.nome_escritor?.toLowerCase().includes(termoPesquisa.toLowerCase())
+    );
+    setResultadosPesquisa(filtrados);
+  }, [termoPesquisa, todosLivrosSistema]);
+
+  // Função nova que apaga e mostra o aviso bonito
+  const confirmarZerarBiblioteca = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "MinhaBiblioteca"));
-      const promessasDeDelecao = querySnapshot.docs.map((documento) =>
-        deleteDoc(doc(db, "MinhaBiblioteca", documento.id))
-      );
+      await limparTodaBiblioteca();
+      setMeusLivros([]);
+      setModalZerarAberto(false); // Fecha a janelinha
       
-      await Promise.all(promessasDeDelecao);
-      
-      alert("Biblioteca zerada com sucesso!");
-      window.location.reload(); // Recarrega a página para sumir com os livros na hora
+      // Mostra a mensagem verde e esconde depois de 3 segundos
+      setMensagemSucesso("Sua biblioteca foi limpa com sucesso!");
+      setTimeout(() => {
+        setMensagemSucesso("");
+      }, 3000);
+
     } catch (error) {
       console.error("Erro ao zerar biblioteca:", error);
-      alert("Erro ao tentar limpar a biblioteca.");
+      alert("Erro de conexão ao tentar limpar a biblioteca.");
     }
   };
 
@@ -94,65 +90,52 @@ export default function MinhaBiblioteca({ aoNavegar }) {
         <h2 className="title">Minha Biblioteca</h2>
         <p className="subtitle">Gerencie suas leituras e acompanhe seu progresso.</p>
 
-        {/* 🔥 Botão condicional: Só aparece se a pessoa tiver livros salvos */}
-        {meusLivros.length > 0 && (
-          <button className="btnZerarBiblioteca" onClick={zerarBiblioteca}>
-          Zerar Biblioteca
-          </button>
-        )}
-
-        {/* Abas de Navegação interna da biblioteca */}
-        <div className="abasContainer">
-          <button 
-            className={`abaBotao ${abaAtiva === "todos" ? "ativa" : ""}`} 
-            onClick={() => setAbaAtiva("todos")}
-          >
-            Todos ({meusLivros.length})
-          </button>
-          <button 
-            className={`abaBotao ${abaAtiva === "lendo" ? "ativa" : ""}`} 
-            onClick={() => setAbaAtiva("lendo")}
-          >
-            Lendo
-          </button>
-          <button 
-            className={`abaBotao ${abaAtiva === "quero-ler" ? "ativa" : ""}`} 
-            onClick={() => setAbaAtiva("quero-ler")}
-          >
-            Quero Ler
-          </button>
-          <button 
-            className={`abaBotao ${abaAtiva === "abandonou" ? "ativa" : ""}`} 
-            onClick={() => setAbaAtiva("abandonou")}
-          >
-            Abandonei
-          </button>
-          <button 
-            className={`abaBotao ${abaAtiva === "lido" ? "ativa" : ""}`} 
-            onClick={() => setAbaAtiva("lido")}
-          >
-            Lidos
-          </button>
+        {/* Barra de Pesquisa */}
+        <div className="pesquisaBancoContainer">
+          <input 
+            type="text"
+            className="inputPesquisaBanco"
+            placeholder="Pesquise aqui..."
+            value={termoPesquisa}
+            onChange={(e) => setTermoPesquisa(e.target.value)}
+          />
+          
+          {resultadosPesquisa.length > 0 && (
+            <div className="dropdownResultados">
+              {resultadosPesquisa.map(livro => (
+                <div 
+                  key={livro.id} 
+                  className="itemResultadoPesquisa"
+                  onClick={() => aoNavegar("/livro", livro.id)}
+                >
+                  <img src={livro.foto_capa} alt={livro.titulo} className="miniCapaPesquisa" />
+                  <div>
+                    <p className="tituloResultado">{livro.titulo}</p>
+                    <p className="autorResultado">{livro.nome_escritor || "Autor desconhecido"}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Grid de Exibição dos Livros */}
+        {/* Abas */}
+        <div className="abasContainer">
+          <button className={`abaBotao ${abaAtiva === "todos" ? "ativa" : ""}`} onClick={() => setAbaAtiva("todos")}>Todos ({meusLivros.length})</button>
+          <button className={`abaBotao ${abaAtiva === "lendo" ? "ativa" : ""}`} onClick={() => setAbaAtiva("lendo")}>Lendo</button>
+          <button className={`abaBotao ${abaAtiva === "quero-ler" ? "ativa" : ""}`} onClick={() => setAbaAtiva("quero-ler")}>Quero Ler</button>
+          <button className={`abaBotao ${abaAtiva === "abandonou" ? "ativa" : ""}`} onClick={() => setAbaAtiva("abandonou")}>Abandonei</button>
+          <button className={`abaBotao ${abaAtiva === "lido" ? "ativa" : ""}`} onClick={() => setAbaAtiva("lido")}>Lidos</button>
+        </div>
+
+        {/* Lista de Livros */}
         <div className="livrosGrid">
           {livrosFiltrados.length > 0 ? (
             livrosFiltrados.map((livro) => (
               <div key={livro.id} className="livroItem">
-                <div 
-                  onClick={() => aoNavegar("/livro", livro.livroId)} 
-                  style={{ cursor: "pointer" }}
-                >
-                  <CardLivro 
-                    imagem={livro.foto_capa} 
-                    titulo={livro.titulo} 
-                    selecionado={false}
-                    onSelect={() => {}}
-                  />
+                <div onClick={() => aoNavegar("/livro", livro.livroId)} style={{ cursor: "pointer" }}>
+                  <CardLivro imagem={livro.foto_capa} titulo={livro.titulo} selecionado={false} onSelect={() => {}}/>
                 </div>
-                
-                {/* Tag dinâmica mostrando o status do livro */}
                 <span className={`statusTag ${(livro.status || "").toLowerCase()}`}>
                   {(livro.status || "").toLowerCase() === "lendo" && "Lendo"}
                   {(livro.status || "").toLowerCase() === "quero-ler" && "Quero ler"}
@@ -165,7 +148,43 @@ export default function MinhaBiblioteca({ aoNavegar }) {
             <p className="semResultados">Nenhum livro encontrado nesta categoria.</p>
           )}
         </div>
+
+        {/* Botão que abre a janelinha (só aparece se tiver livros) */}
+        {meusLivros.length > 0 && (
+          <button className="btnZerarBibliotecaDiscreto" onClick={() => setModalZerarAberto(true)}>
+            Limpar todos os dados da minha biblioteca
+          </button>
+        )}
       </main>
+
+      {/* --- O MODAL BONITINHO FICA AQUI --- */}
+      {modalZerarAberto && (
+        <div className="modalOverlay">
+          <div className="modalBox">
+            <div className="modalIcone">⚠️</div>
+            <h3 className="modalTitulo">Atenção!</h3>
+            <p className="modalTexto">
+              Você tem certeza que deseja <strong>apagar TODOS</strong> os livros, notas e avaliações da sua biblioteca? Esta ação não poderá ser desfeita.
+            </p>
+            <div className="modalBotoes">
+              <button className="btnModalCancelar" onClick={() => setModalZerarAberto(false)}>
+                Cancelar
+              </button>
+              <button className="btnModalApagar" onClick={confirmarZerarBiblioteca}>
+                Sim, quero apagar tudo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- O AVISO DE SUCESSO FICA AQUI --- */}
+      {mensagemSucesso && (
+        <div className="toastSucesso">
+          {mensagemSucesso}
+        </div>
+      )}
+
     </div>
   );
 }
