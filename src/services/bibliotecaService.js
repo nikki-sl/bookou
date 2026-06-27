@@ -1,46 +1,31 @@
 import { db } from "../firebase";
 import { collection, getDocs, deleteDoc, doc, getDoc, setDoc } from "firebase/firestore";
-import { obterTodosLivrosSistema } from "./livrosService";
 
-// Busca a biblioteca do usuário e cruza com os dados que vêm do livrosService
+// 1. Busca todos os livros salvos na biblioteca do usuário
 export const obterBibliotecaDetalhada = async () => {
-  const bibliotecaRef = collection(db, "MinhaBiblioteca");
-  const querySnapshot = await getDocs(bibliotecaRef);
+  const querySnapshot = await getDocs(collection(db, "MinhaBiblioteca"));
   
-  const itensBiblioteca = querySnapshot.docs.map(doc => ({
+  // Como o título e a capa já foram salvos junto, é só retornar os dados direto!
+  return querySnapshot.docs.map(doc => ({
     id: doc.id,
     ...doc.data()
   }));
-
-  const listaTodosLivros = await obterTodosLivrosSistema();
-
-  return itensBiblioteca.map(item => {
-    const dadosDoLivro = listaTodosLivros.find(l => l.id === item.livroId);
-    return {
-      ...item,
-      ...dadosDoLivro 
-    };
-  }).filter(l => l.titulo);
 };
 
-// Busca o status, nota e feedback que o usuário deu para um livro específico
+// 2. Busca o status, nota e feedback de um livro específico
 export const obterStatusUsuarioLivro = async (idLivro) => {
-  const bibliotecaRef = doc(db, "MinhaBiblioteca", idLivro);
-  const bibliotecaSnap = await getDoc(bibliotecaRef);
+  const bibliotecaSnap = await getDoc(doc(db, "MinhaBiblioteca", idLivro));
   
-  if (bibliotecaSnap.exists()) {
-    return {
-      status: bibliotecaSnap.data().status || "",
-      feedback: bibliotecaSnap.data().feedback || "",
-      nota: bibliotecaSnap.data().nota || 0
-    };
-  }
-  return { status: "", feedback: "", nota: 0 };
+  // Usamos um "if" simplificado (operador ternário) para retornar os dados ou valores zerados
+  return bibliotecaSnap.exists() 
+    ? bibliotecaSnap.data() 
+    : { status: "", feedback: "", nota: 0 };
 };
 
-// Salva ou atualiza os dados de progresso de leitura do usuário
+// 3. Salva ou atualiza os dados de leitura
 export const atualizarDadosLeitura = async (idLivro, dados) => {
   const docRef = doc(db, "MinhaBiblioteca", idLivro);
+  
   await setDoc(docRef, {
     livroId: idLivro,
     titulo: dados.titulo,
@@ -52,17 +37,19 @@ export const atualizarDadosLeitura = async (idLivro, dados) => {
   }, { merge: true });
 };
 
-// Remove um livro específico da biblioteca do usuário
+// 4. Remove um livro específico
 export const removerLivroDaBiblioteca = async (idLivro) => {
-  const docRef = doc(db, "MinhaBiblioteca", idLivro);
-  await deleteDoc(docRef);
+  await deleteDoc(doc(db, "MinhaBiblioteca", idLivro));
 };
 
-// Apaga todos os livros salvos na biblioteca do usuário
+// 5. Apaga todos os livros de uma vez
 export const limparTodaBiblioteca = async () => {
   const querySnapshot = await getDocs(collection(db, "MinhaBiblioteca"));
-  const promessasDeDelecao = querySnapshot.docs.map((documento) =>
-    deleteDoc(doc(db, "MinhaBiblioteca", documento.id))
+  
+  // Usamos 'documento.ref' para simplificar o caminho da exclusão
+  const promessasDeDelecao = querySnapshot.docs.map(documento => 
+    deleteDoc(documento.ref)
   );
+  
   await Promise.all(promessasDeDelecao);
 };

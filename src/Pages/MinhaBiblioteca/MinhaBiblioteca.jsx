@@ -10,11 +10,9 @@ export default function MinhaBiblioteca({ aoNavegar }) {
   const [todosLivrosSistema, setTodosLivrosSistema] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [abaAtiva, setAbaAtiva] = useState("todos");
-  
   const [termoPesquisa, setTermoPesquisa] = useState("");
   const [resultadosPesquisa, setResultadosPesquisa] = useState([]);
 
-  // Novos estados para controlar o visual dos alertas
   const [modalZerarAberto, setModalZerarAberto] = useState(false);
   const [mensagemSucesso, setMensagemSucesso] = useState("");
 
@@ -32,7 +30,7 @@ export default function MinhaBiblioteca({ aoNavegar }) {
         setCarregando(false);
       }
     };
-
+    
     carregarDados();
   }, []);
 
