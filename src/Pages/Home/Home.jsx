@@ -1,99 +1,65 @@
 import React, { useState, useEffect } from "react";
 import "./Home.css";
-
-import { db } from "../../firebase";
-import { collection, getDocs } from "firebase/firestore";
-
 import Header from "../../components/Header/Header";
 import SearchBar from "../../components/SearchBar/SearchBar";
-import CardLivro from "../../components/CardLivro/CardLivro";
+import MenuOpcoes from "../../components/MenuOpcoes/MenuOpcoes";
+import SecaoLivros from "../../components/SecaoLivros/SecaoLivros";
+import ResultadoPesquisa from "../../components/ResultadoPesquisa/ResultadoPesquisa"; // 🌟 NOVO IMPORT
+import { buscarDadosHome, obterLivrosPopulares, limparCacheHome } from "../../services/livrosService";
 
 export default function Home({ aoNavegar }) {
   const [livros, setLivros] = useState([]);
-  const [livrosLendo, setLivrosLendo] = useState([]); 
-  const [livrosQueroLer, setLivrosQueroLer] = useState([]); 
-  const [livrosLidos, setLivrosLidos] = useState([]); 
+  const [livrosLendo, setLivrosLendo] = useState([]);
+  const [livrosQueroLer, setLivrosQueroLer] = useState([]);
+  const [livrosLidos, setLivrosLidos] = useState([]);
   const [pesquisa, setPesquisa] = useState("");
-  const [menuAberto, setMenuAberto] = useState(false);
 
   useEffect(() => {
-    const buscarDados = async () => {
+    const carregarDados = async () => {
       try {
-        // Busca todos os livros cadastrados na plataforma
-        const queryLivros = await getDocs(collection(db, "Livro"));
-        const listaLivros = queryLivros.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setLivros(listaLivros);
-
-        // Busca as interações da biblioteca do usuário
-        const queryBiblioteca = await getDocs(collection(db, "MinhaBiblioteca"));
-        const listaBiblioteca = queryBiblioteca.docs.map((doc) => doc.data());
-        
-        // Filtra pelos status corretos para alimentar os novos painéis
-        setLivrosLendo(listaBiblioteca.filter(item => (item.status || "").toLowerCase() === "lendo"));
-        setLivrosQueroLer(listaBiblioteca.filter(item => (item.status || "").toLowerCase() === "quero-ler"));
-        setLivrosLidos(listaBiblioteca.filter(item => (item.status || "").toLowerCase() === "lido"));
-
+        limparCacheHome();
+        const dados = await buscarDadosHome();
+        setLivros(dados.todosLivros || []);
+        setLivrosLendo(dados.lendo || []);
+        setLivrosQueroLer(dados.queroLer || []);
+        setLivrosLidos(dados.lidos || []);
       } catch (error) {
-        console.error("Erro ao buscar dados do Firebase:", error);
+        console.error("Erro ao carregar dados na Home:", error);
       }
     };
-
-    buscarDados();
+    carregarDados();
   }, []);
 
   const livrosFiltrados = livros.filter((livro) =>
     (livro.titulo || "").toLowerCase().includes(pesquisa.toLowerCase())
   );
 
-  const alternarMenu = (e) => {
-    e.stopPropagation();
-    setMenuAberto(!menuAberto);
-  };
+  const livrosPopulares = obterLivrosPopulares(livros);
 
   return (
-    <div className="homeContainer" onClick={() => setMenuAberto(false)}>
+    <div className="homeContainer">
       <Header onBack={() => aoNavegar("/")} />
 
       <main className="homeContent">
         {/* HERO */}
         <section className="heroSection">
-          {/* BOTÃO DE TRÊS PONTINHOS COMPORTADO E ESTILIZADO */}
-          <div className="menuOpcoesContext">
-            <button className="btnTresPontinhos" onClick={alternarMenu}>
-              &#8942;
-            </button>
-            
-            {menuAberto && (
-              <div className="dropdownMenu">
-                <button onClick={() => aoNavegar("/perfil")}>👤 Meu Perfil</button>
-                <button onClick={() => aoNavegar("/biblioteca")}>📚 Minha Biblioteca</button>
-                <button onClick={() => aoNavegar("/preferencias")}>⚙️ Preferências</button>
-                <div className="divisorMenu"></div>
-                <button className="btnSairDropdown" onClick={() => aoNavegar("/")}>Sair</button>
-              </div>
-            )}
-          </div>
+          <MenuOpcoes aoNavegar={aoNavegar} />
 
           <div className="heroText">
             <h1>Bem-vindo ao Bookou 📚</h1>
             <p>Descubra novos livros, acompanhe sua jornada literária e encontre histórias que combinam com você.</p>
           </div>
 
-          {/* NOVOS CARDS FOCADOS NO PROGRESSO DO USUÁRIO */}
+          {/* CARDS DE PROGRESSO DO USUÁRIO */}
           <div className="heroStats">
             <div className="statCard">
               <span>{livrosLendo.length}</span>
               <p>Lendo</p>
             </div>
-
             <div className="statCard">
               <span>{livrosQueroLer.length}</span>
               <p>Quero Ler</p>
             </div>
-
             <div className="statCard">
               <span>{livrosLidos.length}</span>
               <p>Lidos</p>
@@ -104,24 +70,10 @@ export default function Home({ aoNavegar }) {
         {/* PESQUISA */}
         <SearchBar value={pesquisa} onChange={setPesquisa} />
 
-        {/* MODO DE BUSCA ATIVA */}
+        {/* MODO DE BUSCA ATIVA VS MODO NORMAL */}
         {pesquisa.trim() !== "" ? (
-          <section className="homeSection">
-            <div className="sectionHeader">
-              <h2>Resultados da Pesquisa ({livrosFiltrados.length})</h2>
-            </div>
-            <div className="resultadoPesquisaGrid">
-              {livrosFiltrados.length > 0 ? (
-                livrosFiltrados.map((livro) => (
-                  <div key={livro.id} onClick={() => aoNavegar("/livro", livro.id)} style={{ cursor: "pointer" }}>
-                    <CardLivro imagem={livro.foto_capa} titulo={livro.titulo} />
-                  </div>
-                ))
-              ) : (
-                <p className="semResultados">Nenhum livro corresponde à sua busca.</p>
-              )}
-            </div>
-          </section>
+          // 🌟 DECLARAÇÃO PROFISSIONAL: Limpo e direto
+          <ResultadoPesquisa livros={livrosFiltrados} aoNavegar={aoNavegar} />
         ) : (
           <>
             {/* BIBLIOTECA */}
@@ -133,49 +85,14 @@ export default function Home({ aoNavegar }) {
               <button>Ver Biblioteca</button>
             </div>
 
-            {/* SEÇÃO DINÂMICA */}
+            {/* SEÇÕES REUTILIZÁVEIS */}
             {livrosLendo.length > 0 ? (
-              <section className="homeSection">
-                <div className="sectionHeader">
-                  <h2>Continue Lendo</h2>
-                  <span>📖</span>
-                </div>
-                <div className="carouselHome">
-                  {livrosLendo.map((livro) => (
-                    <div key={livro.livroId} onClick={() => aoNavegar("/livro", livro.livroId)} style={{ cursor: "pointer" }}>
-                      <CardLivro imagem={livro.foto_capa} titulo={livro.titulo} />
-                    </div>
-                  ))}
-                </div>
-              </section>
+              <SecaoLivros titulo="Continue Lendo" icone="📖" livros={livrosLendo} aoNavegar={aoNavegar} />
             ) : (
-              <section className="homeSection">
-                <div className="sectionHeader">
-                  <h2>Populares no Bookou</h2>
-                </div>
-                <div className="carouselHome">
-                  {[...livros].reverse().slice(0, 5).map((livro) => (
-                    <div key={livro.id} onClick={() => aoNavegar("/livro", livro.id)} style={{ cursor: "pointer" }}>
-                      <CardLivro imagem={livro.foto_capa} titulo={livro.titulo} />
-                    </div>
-                  ))}
-                </div>
-              </section>
+              <SecaoLivros titulo="Populares no Bookou" livros={livrosPopulares} aoNavegar={aoNavegar} />
             )}
 
-            {/* SUGESTÕES */}
-            <section className="homeSection">
-              <div className="sectionHeader">
-                <h2>Sugestões para Você</h2>
-              </div>
-              <div className="carouselHome">
-                {livros.map((livro) => (
-                  <div key={livro.id} onClick={() => aoNavegar("/livro", livro.id)} style={{ cursor: "pointer" }}>
-                    <CardLivro imagem={livro.foto_capa} titulo={livro.titulo} />
-                  </div>
-                ))}
-              </div>
-            </section>
+            <SecaoLivros titulo="Sugestões para Você" livros={livros} aoNavegar={aoNavegar} />
           </>
         )}
       </main>

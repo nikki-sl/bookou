@@ -1,0 +1,24 @@
+.menuOpcoesContext {
+  position: absolute; /* Permite mover livremente pelo bloco pai */
+  top: 20px;          /* Afasta do topo da caixa laranja */
+  right: 20px;        /* Afasta da borda direita */
+  z-index: 10;        /* Garante que o menu vai abrir por cima de tudo */
+}
+
+.btnTresPontinhos {
+  background: rgba(255, 255, 255, 0.2); /* Fundo branco bem transparente */
+  border: none;
+  font-size: 1.4rem;
+  color: white;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 50%; /* Deixa o fundo perfeitamente redondo */
+  transition: background 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btnTresPontinhos:hover {
+  background: rgba(255, 255, 255, 0.4); /* Destaca levemente ao passar o mouse */
+}
