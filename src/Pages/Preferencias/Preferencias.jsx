@@ -7,8 +7,8 @@ import CardLivro from "../../components/CardLivro/CardLivro";
 import CardGenero from "../../components/CardGenero/CardGenero";
 import CardEscritor from "../../components/CardEscritor/CardEscritor";
 
-import { db } from "../../firebase";
-import { collection, addDoc } from "firebase/firestore";
+// Importação do serviço isolado
+import { salvarPreferenciasUsuario } from "../../services/preferenciasService";
 
 export default function Preferencias({ aoNavegar, livros, generos, escritores }) {
   const [pesquisa, setPesquisa] = useState("");
@@ -54,11 +54,13 @@ export default function Preferencias({ aoNavegar, livros, generos, escritores })
         dataCriacao: new Date()                    
       };
 
-      await addDoc(collection(db, "Preferencias"), dadosPreferencia);
+      // Chamada do serviço
+      await salvarPreferenciasUsuario(dadosPreferencia);
+      
       alert("Preferências salvas com sucesso!");
       aoNavegar("/home");
     } catch (error) {
-      console.error("Erro ao salvar preferências no Firebase:", error);
+      alert("Erro ao salvar preferências. Por favor, tente novamente.");
     }
   };
 
@@ -73,7 +75,7 @@ export default function Preferencias({ aoNavegar, livros, generos, escritores })
         <div className="sectionWrapper">
           <h3 className="dividerTitle">Sugestões</h3>
           
-          {/* CARROSSEL DE LIVROS */}
+          {/* SECCÃO DE LIVROS */}
           {livrosFiltrados.length > 0 && (
             <>
               <h4 className="sectionTitle">Livros</h4>
@@ -91,7 +93,7 @@ export default function Preferencias({ aoNavegar, livros, generos, escritores })
             </>
           )}
 
-          {/* CARROSSEL DE GÊNEROS */}
+          {/* SECÇÃO DE GÊNEROS */}
           {generosFiltrados.length > 0 && (
             <>
               <h4 className="sectionTitle">Gêneros</h4>
@@ -108,7 +110,7 @@ export default function Preferencias({ aoNavegar, livros, generos, escritores })
             </>
           )}
 
-          {/* CARROSSEL DE AUTORES / ESCRITORES */}
+          {/* SECÇÃO DE AUTORES */}
           {escritoresFiltrados.length > 0 && (
             <>
               <h4 className="sectionTitle">Autores</h4>

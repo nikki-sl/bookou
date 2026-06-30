@@ -3,7 +3,7 @@
   max-width: 100%;
   margin: 0 auto;
   background-color: #FFFFFF;
-  min-height:100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
@@ -28,13 +28,13 @@
 .subtitle {
   color: #718096;
   font-size: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
   text-align: center;
 }
 
 .sectionWrapper {
   width: 100%;
-  margin-bottom: 32px;
+  margin-bottom: 48px;
 }
 
 .dividerTitle {
@@ -44,7 +44,7 @@
   color: #2D3748;
   border-bottom: 1px solid #E2E8F0;
   padding-bottom: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   font-weight: 600;
 }
 
@@ -53,24 +53,19 @@
   font-size: 18px;
   font-weight: 600;
   color: #2D3748;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
 }
 
+/* Mantivemos o nome original que está no seu JSX (carouselHorizontal) 
+  Aplicamos o Grid para forçar 5 itens por linha 
+*/
 .carouselHorizontal {
-  display: flex;
-  gap: 16px;
-  overflow-x: auto;
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 24px; 
   width: 100%;
-  padding-bottom: 12px;
-}
-
-.carouselHorizontal::-webkit-scrollbar {
-  height: 5px;
-}
-
-.carouselHorizontal::-webkit-scrollbar-thumb {
-  background-color: #E2E8F0;
-  border-radius: 4px;
+  margin-bottom: 56px; 
+  justify-items: center;
 }
 
 .buttonContainer {
@@ -106,11 +101,36 @@
   padding: 12px;
 }
 
+/* Responsividade: Evita que os 5 itens fiquem esmagados em telas de celular */
+@media (max-width: 900px) {
+  .content {
+    padding: 30px 40px;
+  }
+  .carouselHorizontal {
+    grid-template-columns: repeat(3, 1fr); /* 3 por linha em tablets */
+  }
+}
+
+/* Responsividade: Evita que os 5 itens fiquem esmagados em telas de celular */
+@media (max-width: 900px) {
+  .content {
+    padding: 30px 40px;
+  }
+  .carouselHorizontal {
+    grid-template-columns: repeat(3, 1fr); /* 3 por linha em tablets */
+  }
+}
+
+
 @media (max-width: 600px) {
   .content {
     padding: 24px 16px;
   }
   .title {
     font-size: 22px;
+  }
+  .carouselHorizontal {
+    grid-template-columns: repeat(2, 1fr); /* 2 por linha em celulares */
+    gap: 16px; 
   }
 }
